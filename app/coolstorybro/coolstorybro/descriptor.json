@@ -1,0 +1,21 @@
+{
+  "key" : "com.activelamp.coolstorybro",
+  "description" : "Automatically updates story points based on estimates on sub-tasks.",
+  "name" : "Cool story, bro",
+  "vendor" : {
+    "name" : "ActiveLAMP",
+    "url" : "http://activelamp.com"
+  },
+  "lifecycle" : {
+    "installed" : "/installed",
+    "uninstalled" : "/uninstalled"
+  },
+  "scopes" : [
+    "write",
+    "read"
+  ],
+  "baseUrl" : "/embed",
+  "authentication" : {
+    "type" : "jwt"
+  }
+}
