@@ -10,11 +10,19 @@
     "installed" : "/installed",
     "uninstalled" : "/uninstalled"
   },
+  "modules" : {
+    "webhooks" : [
+      { "event" : "jira:issue_created", "url" : "/webhook/issue-created" },
+      { "event" : "jira:issue_updated", "url" : "/webhook/issue-updated" },
+      { "event" : "jira:issue_deleted", "url" : "/webhook/issue-deleted" },
+      { "event" : "remote_issue_link_aggregate_cleared_event", "url" : "/webhook/issue-updated" }
+    ]
+  },
   "scopes" : [
     "write",
     "read"
   ],
-  "baseUrl" : "/embed",
+  "baseUrl" : null,
   "authentication" : {
     "type" : "jwt"
   }
