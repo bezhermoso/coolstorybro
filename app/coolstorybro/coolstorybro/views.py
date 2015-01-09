@@ -1,7 +1,6 @@
 from pyramid.view import view_config
 import os
 from pyramid.response import Response
-from .tokens import manager
 import json
 import re
 import base64
@@ -27,6 +26,7 @@ def descriptor_view(request):
 @view_config(name="installed")
 def lifecycle_installed_view(request):
     data = request.json_body
+    manager = request.jira_token_mgr
     if (data):
         manager.set(data['clientKey'], data['sharedSecret'])
         return Response('OK!')
@@ -36,6 +36,7 @@ def lifecycle_installed_view(request):
 @view_config(name="uninstalled")
 def lifecycle_uninstalled_view(request):
     data = request.json_body
+    manager = request.jira_token_mgr
     if (data):
         manager.delete(data['clientKey'])
         return Response('OK!')
@@ -54,6 +55,7 @@ def webhook_view(request):
     claims = json.loads(base64.b64decode(token.split('.')[1] + '=='))
 
     # Check if JIRA instance is registered with us.
+    manager = request.jira_token_mgr
     try:
         secret = manager.get(claims['iss'])
     except:
