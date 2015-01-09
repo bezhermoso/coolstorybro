@@ -20,7 +20,7 @@ class SQLAlchemyAdapter(object):
         self._cls = cls
 
     def get(self, client_key):
-        return self._session.query(self._cls).filter(self._cls.client_key==client_key).one()
+        return self._session.query(self._cls).filter(self._cls.client_key==client_key).one().client_secret
 
     def set(self, client_key, secret):
         try:
