@@ -16,6 +16,25 @@
       { "event" : "jira:issue_updated", "url" : "/webhook/issue-updated" },
       { "event" : "jira:issue_deleted", "url" : "/webhook/issue-deleted" },
       { "event" : "remote_issue_link_aggregate_cleared_event", "url" : "/webhook/issue-updated" }
+    ],
+    "adminPages" : [
+      {
+        "url" : "/instance-configuration",
+        "key" : "configure",
+        "conditions" : [
+          {
+            "condition" : "user_is_admin"
+          },
+          {
+            "condition" : "user_is_sysadmin"
+          }
+        ],
+        "location" : "atl.jira.proj.config/projectgroup2",
+        "weight" : 100,
+        "name" : {
+          "value" : "Configure \"Auto\" Story Points"
+        }
+      }
     ]
   },
   "scopes" : [

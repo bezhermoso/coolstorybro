@@ -1,0 +1,51 @@
+<html metal:use-macro="load: ac.pt">
+        <div metal:fill-slot="content" tal:omit-tag="True">
+            <section class="ac-content">
+                <header class="aui-page-header">
+                    <div class="aui-page-header-inner">
+                        <div class="aui-page-header-image">
+                            <span class="aui-avatar aui-avatar-large aui-avatar-project">
+                                <span class="aui-avatar-inner">
+                                    <img alt="Atlassian logo" src="${project.avatarUrls.get('24x24')}">
+                                </span>
+                            </span>
+                        </div>
+                        <div class="aui-page-header-main">
+                            <h1>Project: ${project.name}</h1>
+                        </div>
+                        <div class="aui-page-header-actions">
+                            <div class="aui-buttons">
+                                <button class="aui-button">Enable automated story point adjustments for this project</button>
+                            </div>
+                        </div>
+                    </div>
+                </header>
+                <div class="aui-page-panel">
+                    <div class="aui-page-panel-inner">
+                        <div class="aui-page-panel-content">
+                            <!--<div class="aui-group">
+                            </div>-->
+                            <h2>Configure Sub-tasks</h2>
+                            <p>Manage which issue statuses trigger the subtraction of the estimate values from the parent sub-task.</p>
+                            <div class="aui-group">
+                                <div class="aui-item" tal:repeat="issue_type subtask_types">
+                                    <h3>${issue_type.name}</h3>
+                                    <ul class="status-types">
+                                        <li tal:repeat="status issue_type.statuses">
+                                            <input type="checkbox" name="issue_type[${issue_type.id}][${status.id}]" />
+                                            <span class="aui-lozenge">${status.name}</span>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </div>
+                            <div class="aui-group">
+                                <div class="aui-item">
+                                    <button class="aui-button">Save Configuration</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </div>
+</html>

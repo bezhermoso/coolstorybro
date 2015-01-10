@@ -5,6 +5,12 @@ import json
 import re
 import base64
 from .jira.api import Client as JiraClient
+import jwt
+import pprint
+from urlparse import (
+ urlparse,
+ parse_qs
+)
 
 @view_config(route_name='home', renderer='templates/mytemplate.pt')
 def my_view(request):
@@ -26,6 +32,7 @@ def descriptor_view(request):
 @view_config(name="installed")
 def lifecycle_installed_view(request):
     data = request.json_body
+    print data
     manager = request.jira_token_mgr
     if (data):
         manager.set(data['clientKey'], data['sharedSecret'])
@@ -42,6 +49,47 @@ def lifecycle_uninstalled_view(request):
         return Response('OK!')
     else:
         return Response('Invalid data.', 400)
+
+@view_config(name="configure-instance", renderer="templates/configure.pt")
+@view_config(name="instance-configuration", renderer="templates/configure.pt")
+def configure_instance_view(request):
+
+    tokens = request.jira_token_mgr
+    jwt_info = jwt.decode(request.params['jwt'], verify=False)
+    secret = tokens.get(jwt_info['iss'])
+
+    if request.referer:
+        jira_url = re.sub('\/plugins\/servlet\/ac\/.*', '', request.referer)
+    else:
+        jira_url = 'http://localhost:2990/jira'
+
+    api_url = jira_url
+    if api_url == 'http://localhost:2990/jira':
+        api_url = 'http://jira-local:2990/jira'
+
+    client = JiraClient(host=api_url, issuer='com.activelamp.coolstorybro', secret=secret)
+
+    parts = urlparse(request.referer)
+    qs_params = parse_qs(parts.query)
+
+    project_key = qs_params['project.key'][0]
+
+    res = client.get(uri='/rest/api/latest/project/' + project_key)
+    statuses_res = client.get(uri='/rest/api/latest/project/' + project_key + '/statuses')
+    statuses = statuses_res.json()
+    print pprint.pformat(statuses)
+
+    subtask_types = [itype for itype in statuses if itype['subtask'] == True]
+    parent_types = [itype for itype in statuses if itype['subtask'] == False]
+
+    host_script_base_url = re.sub('^https?:', '', jira_url)
+    return {
+        'project': res.json(),
+        'subtask_types': subtask_types,
+        'parent_types': parent_types,
+        'host_script_base_url': host_script_base_url
+    }
+
 
 # Webhook callbacks
 @view_config(route_name="webhook")

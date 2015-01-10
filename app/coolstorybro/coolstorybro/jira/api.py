@@ -36,6 +36,12 @@ class Client(object):
         uri = self._strip_host(uri)
         data = {} if data is None else data
         jwt = self._create_jwt('GET', uri, data, **kwargs)
+        actual_uri = uri
+
+        if not actual_uri.startswith('/'):
+            actual_uri = '/%s' % actual_uri
+
+        print self._host + uri
         req = requests.get(self._host + uri, data=data, headers={
             'Authorization': 'JWT %s' % jwt
         })

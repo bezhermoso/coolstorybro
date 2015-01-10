@@ -20,11 +20,15 @@ class SQLAlchemyAdapter(object):
         self._cls = cls
 
     def get(self, client_key):
-        return self._session.query(self._cls).filter(self._cls.client_key==client_key).one().client_secret
+        return str(self._get_object(client_key).client_secret)
+
+    def _get_object(self, client_key):
+            return self._session.query(self._cls).filter(self._cls.client_key==client_key).one()
 
     def set(self, client_key, secret):
         try:
-            c = self.get(client_key)
+            c = self._get_object(client_key)
+            c.client_secret = secret
         except NoResultFound:
             c = self._cls(client_key=client_key, client_secret=secret)
         self._session.add(c)
