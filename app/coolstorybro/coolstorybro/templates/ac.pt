@@ -38,6 +38,7 @@
                 host_script_base_url = 'localhost:2990/jira'
         ?>
         <script src="${host_script_base_url}/atlassian-connect/all.js" data-options="sizeToParent:true"></script>
+        <script src="//oss.maxcdn.com/libs/jquery/1.10.2/jquery.min.js"></script>
     </metal:block>
     <metal:block metal:define-slot="more-scripts"></metal:block>
   </body>

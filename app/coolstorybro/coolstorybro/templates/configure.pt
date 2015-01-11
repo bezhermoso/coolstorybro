@@ -15,7 +15,8 @@
                         </div>
                         <div class="aui-page-header-actions">
                             <div class="aui-buttons">
-                                <button class="aui-button">Enable automated story point adjustments for this project</button>
+                                <button class="aui-button" id="enable" tal:condition="enabled">Enable automated story point adjustments for this project</button>
+                                <button class="aui-button" id="disable" tal:condition="not:enabled">Disable automated story point adjustments for this project</button>
                             </div>
                         </div>
                     </div>
@@ -27,12 +28,14 @@
                             </div>-->
                             <h2>Configure Sub-tasks</h2>
                             <p>Manage which issue statuses trigger the subtraction of the estimate values from the parent sub-task.</p>
+                            <form method="post" id="project-configuration">
+                            <!-- BEGIN FORM -->
                             <div class="aui-group">
                                 <div class="aui-item" tal:repeat="issue_type subtask_types">
                                     <h3>${issue_type.name}</h3>
                                     <ul class="status-types">
                                         <li tal:repeat="status issue_type.statuses">
-                                            <input type="checkbox" name="issue_type[${issue_type.id}][${status.id}]" />
+                                            <input type="checkbox" name="issue_type[${issue_type.id}][${status.id}]" class="type-${issue_type.id}-${status.id}" />
                                             <span class="aui-lozenge">${status.name}</span>
                                         </li>
                                     </ul>
@@ -43,9 +46,60 @@
                                     <button class="aui-button">Save Configuration</button>
                                 </div>
                             </div>
+                            </form>
                         </div>
                     </div>
                 </div>
             </section>
+        </div>
+        <div metal:fill-slot="more-scripts" tal:omit-tag="True">
+            <script src="${request.static_url('coolstorybro:static/jquery-serializeForm.min.js')}"></script>
+            <script type="text/javascript">
+                var clientId = "${client_id}";
+                var projectId = "${project.id}";
+                var project_config = ${project_config};
+
+                jQuery(function ($) {
+
+                    $.each(project_config, function (type, config) {
+                        $.each(config, function (status, value) {
+                            var selector = '.type-' + type + '-' + status;
+                            $(selector).attr('checked', 'checked');
+                        });
+                    });
+
+                    $('button#enable,button#disable').click(function (e) {
+                        var action = $(this).attr('id') == 'enable' ? 'enable' : 'disable';
+                        $.ajax({
+                            url: "${enable_endpoint}",
+                            data: $.param([
+                                {'name' : 'project_id', value: projectId},
+                                {'name' : 'client_id', value: clientId},
+                                {'name' : 'action', value: action},
+                            ]),
+                            method: 'post',
+                            success: function (response) {
+                                window.location.reload()
+                            }
+                        })
+                    });
+
+                    $('form#project-configuration').submit(function (e) {
+                        e.preventDefault();
+                        var data = $(this).serializeForm();
+                        data['client_id'] = clientId;
+                        data['project_id'] = projectId;
+                        $.ajax({
+                            url: "${config_endpoint}",
+                            data: JSON.stringify(data),
+                            method: 'post',
+                            dataType: 'json',
+                            success: function (response) {
+
+                            }
+                        })
+                    });
+                });
+            </script>
         </div>
 </html>

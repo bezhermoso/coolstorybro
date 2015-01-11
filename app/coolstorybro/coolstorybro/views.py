@@ -75,20 +75,52 @@ def configure_instance_view(request):
     project_key = qs_params['project.key'][0]
 
     res = client.get(uri='/rest/api/latest/project/' + project_key)
-    statuses_res = client.get(uri='/rest/api/latest/project/' + project_key + '/statuses')
+    project = res.json()
+    statuses_res = client.get(uri=project['self'] + '/statuses')
     statuses = statuses_res.json()
     print pprint.pformat(statuses)
 
     subtask_types = [itype for itype in statuses if itype['subtask'] == True]
     parent_types = [itype for itype in statuses if itype['subtask'] == False]
 
+    config_mgr = request.jira_project_config_mgr
+    if config_mgr.has_config(project_id=str(project['id']), client_key=jwt_info['iss']):
+        project_config = config_mgr.get_config(project_id=str(project['id']), client_key=jwt_info['iss'])
+    else:
+        project_config = None
+
     host_script_base_url = re.sub('^https?:', '', jira_url)
     return {
-        'project': res.json(),
+        'project': project,
         'subtask_types': subtask_types,
         'parent_types': parent_types,
-        'host_script_base_url': host_script_base_url
+        'host_script_base_url': host_script_base_url,
+        'client_id': jwt_info['iss'],
+        'config_endpoint': request.resource_url(request.context, 'save-configuration'),
+        'enable_endpoint': request.resource_url(request.context, 'enable-project'),
+        'project_config': "{}" if project_config is None else project_config.configuration,
+        'enabled': False if project_config is None else project_config.enabled
     }
+
+@view_config(name='save-configuration')
+def save_configuration_view(request):
+    data = request.json_body
+    request.jira_token_mgr.get(data['client_id'])  # Raises exception if JIRA instance is recognized.
+
+    config_mgr = request.jira_project_config_mgr
+    config_mgr.save_data(client_key=data['client_id'], project_id=data['project_id'], configuration=data['issue_type'])
+
+    return Response('OK!')
+
+@view_config(name='enable-project')
+def enable_automation_view(request):
+    request.jira_token_mgr.get(request.params['client_id'])  # Raises exception if JIRA instance is recognized.
+    config_mgr = request.jira_project_config_mgr
+    if request.params['action'] == 'enable':
+        config_mgr.enable(client_key=request.params['client_id'], project_id=request.params['project_id'])
+    else:
+        config_mgr.disable(client_key=request.params['client_id'], project_id=request.params['project_id'])
+    return Response('OK!')
 
 
 # Webhook callbacks

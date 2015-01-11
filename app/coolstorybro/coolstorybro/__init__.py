@@ -10,6 +10,11 @@ from .models import (
     DBSession,
     Base,
     JiraInstance,
+    ProjectConfig
+)
+
+from .jira.project_config import (
+    ConfigManager
 )
 
 def db(request):
@@ -31,6 +36,10 @@ def jira_token_mgr(request):
     adapter = SQLAlchemyAdapter(db_session, JiraInstance)
     return TokenManager(adapter)
 
+def jira_project_config_mgr(request):
+    db_session = request.db_session
+    return ConfigManager(db_session, ProjectConfig)
+
 
 def main(global_config, **settings):
     """ This function returns a Pyramid WSGI application.
@@ -48,6 +57,7 @@ def main(global_config, **settings):
     config.add_route('home', '/')
 
     config.add_request_method(jira_token_mgr, 'jira_token_mgr', reify=True)
+    config.add_request_method(jira_project_config_mgr, 'jira_project_config_mgr', reify=True)
     config.add_request_method(db, 'db_session', reify=True)
 
     config.add_route('webhook', '/webhook/{event}')
