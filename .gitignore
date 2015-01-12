@@ -2,5 +2,6 @@ env
 .idea
 .vagrant
 app/*/*.egg-info
+*.pyc
 app/coolstorybro/coolstorybro/tokens/_tokens/*
 !app/coolstorybro/coolstorybro/tokens/_tokens/.gitkeep
