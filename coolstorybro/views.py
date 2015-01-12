@@ -12,7 +12,7 @@ from pyramid.response import Response
 import re
 import jwt
 
-from .coolstorybro.jira.api import Client as JiraClient
+from .jira.api import Client as JiraClient
 
 
 @view_config(route_name='home', renderer='templates/mytemplate.pt')
