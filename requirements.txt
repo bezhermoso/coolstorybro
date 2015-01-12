@@ -6,7 +6,6 @@ PyJWT==0.4.0
 Pygments==2.0.1
 WebOb==1.4
 argparse==1.2.1
-coolstorybro==0.0
 pyramid==1.5.2
 pyramid-chameleon==0.3
 pyramid-debugtoolbar==2.2.2
