@@ -45,3 +45,8 @@ class ConfigManager(object):
             pc = self._cls(client_key=client_key, project_id=project_id, configuration='{}', enabled=False)
         self._session.add(pc)
 
+    def get_config_if_any(self, client_key, project_id):
+        try:
+            return self.get_config(client_key, project_id)
+        except NoResultFound:
+            return None
