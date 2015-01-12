@@ -1,16 +1,19 @@
-from pyramid.view import view_config
-import os
-from pyramid.response import Response
 import json
-import re
 import base64
-from .jira.api import Client as JiraClient
-import jwt
 import pprint
 from urlparse import (
  urlparse,
  parse_qs
 )
+
+from pyramid.view import view_config
+import os
+from pyramid.response import Response
+import re
+import jwt
+
+from .coolstorybro.jira.api import Client as JiraClient
+
 
 @view_config(route_name='home', renderer='templates/mytemplate.pt')
 def my_view(request):

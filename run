@@ -1,6 +1,6 @@
 #!/bin/bash
 set -e
-cd app/coolstorybro && python setup.py develop
+python setup.py develop
 python build_heroku.py
 /app/.heroku/python/bin/initialize_coolstorybro_db heroku.ini
 python herokuapp.py

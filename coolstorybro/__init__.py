@@ -1,21 +1,21 @@
 from pyramid.config import Configurator
 from sqlalchemy import engine_from_config
 from sqlalchemy.orm import sessionmaker
-from random import random
+
 from .jira.tokens import (
     TokenManager,
     SQLAlchemyAdapter
 )
-from .models import (
+from coolstorybro.models import (
     DBSession,
     Base,
     JiraInstance,
     ProjectConfig
 )
-
 from .jira.project_config import (
     ConfigManager
 )
+
 
 def db(request):
     maker = request.registry.db_session_maker
