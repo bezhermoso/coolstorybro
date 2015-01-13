@@ -185,34 +185,34 @@ def __on_issue_updated(data, secret, request):
     if not data['issue']['fields'].has_key('parent'):
         return None
 
-    story_points = __extract_estimate(data['issue'])
-    diff = True
+    story_points = None
     print pprint.pformat(data['changelog'])
-    #  Check if the summary is one of the fields updated.
-    for change in data['changelog']['items']:
-        if change['field'] == 'summary':
-            #  Calculate the change of estimate
-            estimate_from = __extract_estimate_from_string(change['fromString'])
-            estimate_to = __extract_estimate_from_string(change['toString'])
-            if estimate_from is None:
-                estimate_from = 0
-            story_points = estimate_to - estimate_from
-            print 'Detected diff:', str(story_points)
-            break
 
-    resolution_change = [change for change in data['changelog']['items'] if change['field'] == 'resolution']
-
-    if len(resolution_change) == 1:
-        resolution_change = resolution_change[0]
+    resolution_changes = [change for change in data['changelog']['items'] if change['field'] == 'resolution']
+    if len(resolution_changes) == 1:
+        resolution_change = resolution_changes[0]
         if resolution_change['from'] is None and resolution_change['to'] is not None:
-            print 'Resolving issue...'
+            print 'Resolving issue: removing from estimate'
             story_points = 0 - __extract_estimate(data['issue'])
         elif resolution_change['from'] is not None and resolution_change['to'] is None:
-            print 'Removing resolution...'
+            print 'Removing resolution: adding to estimate.'
             story_points = __extract_estimate(data['issue'])
-
-    if story_points is not None:
         __update_issue_story_point(client, data['issue']['fields']['parent'], story_points)
+        return
+
+    summary_changes = [change for change in data['changelog']['items'] if change['field'] == 'summary']
+    if len(summary_changes) == 1:
+        summary_change = summary_changes[0]
+        estimate_from = __extract_estimate_from_string(summary_change['fromString'])
+        estimate_to = __extract_estimate_from_string(summary_change['toString'])
+        if estimate_from is None:
+            estimate_from = 0
+        if estimate_to is None:
+            estimate_to = 0
+        story_points = estimate_to - estimate_from
+        print 'Detected diff %f -> %f: %f' % (estimate_from, estimate_to, story_points)
+        __update_issue_story_point(client, data['issue']['fields']['parent'], story_points)
+
 
 def __on_issue_created(data, secret, request):
     """
@@ -231,6 +231,7 @@ def __on_issue_created(data, secret, request):
         return None
 
     if data['issue']['fields']['resolution'] is not None:
+        print 'Ignored issue because it is already resolved.'
         return None
 
     if data['issue']['fields'].has_key('parent'):
@@ -253,6 +254,7 @@ def __on_issue_deleted(data, secret, request):
         return None
 
     if data['issue']['fields']['resolution'] is not None:
+        print 'Ignored issue because it is already resolved.'
         return None
 
     if data['issue']['fields'].has_key('parent'):
@@ -303,6 +305,10 @@ def __update_issue_story_point(client, parent_issue, story_points):
     :param diff:
     :return:
     """
+
+    if story_points == 0:
+        return
+
     res = client.get(parent_issue['self'])
     parent_data = res.json()
     if parent_data['fields'].has_key(STORY_POINT_FIELD_ID):
