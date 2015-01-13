@@ -23,13 +23,13 @@
         "key" : "configure",
         "conditions" : [
           {
-            "condition" : "user_is_project_admin"
+            "condition" : "user_is_admin"
           }
         ],
         "location" : "atl.jira.proj.config/projectgroup2",
         "weight" : 100,
         "name" : {
-          "value" : "Configure \"Auto\" Story Points"
+          "value" : "Story Point Adjustments"
         }
       }
     ]
