@@ -13,40 +13,16 @@
                         <div class="aui-page-header-main">
                             <h1>Project: ${project.name}</h1>
                         </div>
-                        <div class="aui-page-header-actions">
-                            <div class="aui-buttons">
-                                <button class="aui-button" id="enable" tal:condition="enabled">Enable automated story point adjustments for this project</button>
-                                <button class="aui-button" id="disable" tal:condition="not:enabled">Disable automated story point adjustments for this project</button>
-                            </div>
-                        </div>
+                        <!--<div class="aui-page-header-actions">
+
+                        </div>-->
                     </div>
                 </header>
                 <div class="aui-page-panel">
                     <div class="aui-page-panel-inner">
                         <div class="aui-page-panel-content">
-                            <!--<div class="aui-group">
-                            </div>-->
-                            <h2>Configure Sub-tasks</h2>
-                            <p>Manage which issue statuses trigger the subtraction of the estimate values from the parent sub-task.</p>
-                            <form method="post" id="project-configuration">
-                            <!-- BEGIN FORM -->
-                            <div class="aui-group">
-                                <div class="aui-item" tal:repeat="issue_type subtask_types">
-                                    <h3>${issue_type.name}</h3>
-                                    <ul class="status-types">
-                                        <li tal:repeat="status issue_type.statuses">
-                                            <input type="checkbox" name="issue_type[${issue_type.id}][${status.id}]" class="type-${issue_type.id}-${status.id}" />
-                                            <span class="aui-lozenge">${status.name}</span>
-                                        </li>
-                                    </ul>
-                                </div>
-                            </div>
-                            <div class="aui-group">
-                                <div class="aui-item">
-                                    <button class="aui-button">Save Configuration</button>
-                                </div>
-                            </div>
-                            </form>
+                            <button class="aui-button hidden" id="enable" disabled>Enable automated story point adjustments for this project</button>
+                            <button class="aui-button hidden" id="disable" disabled>Disable automated story point adjustments for this project</button>
                         </div>
                     </div>
                 </div>
@@ -54,22 +30,28 @@
         </div>
         <div metal:fill-slot="more-scripts" tal:omit-tag="True">
             <script src="${request.static_path('coolstorybro:static/jquery-serializeForm.min.js')}"></script>
+            <?python
+                import json
+                enable = json.dumps(project_config.enabled)
+                projectId = json.dumps(project_config.project_id)
+                clientId = json.dumps(project_config.client_key)
+            ?>
             <script type="text/javascript">
-                var clientId = "${client_id}";
-                var projectId = "${project.id}";
-                var project_config = ${project_config};
-
+                var enabled = ${enable};
+                var projectId = ${projectId};
+                var clientId = ${clientId};
                 jQuery(function ($) {
-                    $.each(project_config, function (type, config) {
-                        $.each(config, function (status, value) {
-                            var selector = '.type-' + type + '-' + status;
-                            $(selector).attr('checked', 'checked');
-                        });
-                    });
 
-                    $('button#enable,button#disable').click(function (e) {
+                    if (enabled) {
+                        $('button#disable').removeClass('hidden').removeAttr('disabled');
+                    } else {
+                        $('button#enable').removeClass('hidden').removeAttr('disabled');
+                    }
+
+                    $('button#enable, button#disable').click(function (e) {
                         var $elem = $(this);
-                        var action = $elem.attr('id') == 'enable' ? 'enable' : 'disable';
+                        var action = $elem.attr('id');
+                        $elem.attr('disabled', 'disabled');
                         $.ajax({
                             url: "${enable_endpoint}",
                             data: $.param([
@@ -79,28 +61,19 @@
                             ]),
                             method: 'post',
                             success: function (response) {
-                                $elem.hide();
-                                $elem.sibling('button').show();
-                            }
-                        })
-                    });
-
-                    $('form#project-configuration').submit(function (e) {
-                        e.preventDefault();
-                        var data = $(this).serializeForm();
-                        data['client_id'] = clientId;
-                        data['project_id'] = projectId;
-                        $.ajax({
-                            url: "${config_endpoint}",
-                            data: JSON.stringify(data),
-                            method: 'post',
-                            dataType: 'json',
-                            success: function (response) {
-
+                                $elem.addClass('hidden');
+                                $elem.siblings('button').removeClass('hidden').removeAttr('disabled');
                             }
                         })
                     });
                 });
             </script>
+        </div>
+        <div metal:fill-slot="more-stylesheets" tal:omit-tag="True">
+            <style>
+                button.hidden {
+                    display: none;
+                }
+            </style>
         </div>
 </html>

@@ -22,6 +22,9 @@ class ConfigManager(object):
         return self._session.query(self._cls).filter(self._cls.client_key==client_key, self._cls.project_id==project_id).one()
         pass
 
+    def create_config(self, client_key, project_id):
+        return self._cls(client_key=client_key, project_id=project_id)
+
     def has_config(self, client_key, project_id):
         try:
             self.get_config(client_key, project_id)

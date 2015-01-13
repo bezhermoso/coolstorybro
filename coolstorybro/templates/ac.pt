@@ -27,6 +27,7 @@
             }
         </style>
     </metal:block>
+    <metal:block metal:define-slot="more-stylesheets"></metal:block>
   </head>
   <body class="aui-page">
     <metal:block metal:define-slot="content" />

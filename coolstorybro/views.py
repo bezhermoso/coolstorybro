@@ -87,30 +87,19 @@ def configure_instance_view(request):
 
     res = client.get(uri='/rest/api/latest/project/' + project_key)
     project = res.json()
-    statuses_res = client.get(uri=project['self'] + '/statuses')
-    statuses = statuses_res.json()
-    print pprint.pformat(statuses)
-
-    subtask_types = [itype for itype in statuses if itype['subtask'] == True]
-    parent_types = [itype for itype in statuses if itype['subtask'] == False]
-
     config_mgr = request.jira_project_config_mgr
     if config_mgr.has_config(project_id=str(project['id']), client_key=jwt_info['iss']):
         project_config = config_mgr.get_config(project_id=str(project['id']), client_key=jwt_info['iss'])
     else:
-        project_config = None
+        project_config = config_mgr.create_config(project_id=str(project['id']), client_key=jwt_info['iss'])
 
     host_script_base_url = re.sub('^https?:', '', jira_url)
     return {
         'project': project,
-        'subtask_types': subtask_types,
-        'parent_types': parent_types,
         'host_script_base_url': host_script_base_url,
         'client_id': jwt_info['iss'],
-        'config_endpoint': request.resource_path(request.context, 'save-configuration'),
         'enable_endpoint': request.resource_path(request.context, 'enable-project'),
-        'project_config': "{}" if project_config is None else project_config.configuration,
-        'enabled': False if project_config is None else project_config.enabled
+        'project_config': project_config
     }
 
 @view_config(name='save-configuration')
