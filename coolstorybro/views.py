@@ -24,9 +24,15 @@ def descriptor_view(request):
     json_data = open(os.path.join(os.path.dirname(__file__), 'descriptor.json'))
     data = json.load(json_data)
     data['baseUrl'] = request.application_url
-    match = re.match('.*\.localtunnel\.me', data['baseUrl'])
-    if match is not None:
-        data['baseUrl'] = re.sub('^http:', 'https:', data['baseUrl'])
+
+    secure_domains = ['.*\.localtunnel\.me', '.*\.herokuapp\.com']
+
+    for sd in secure_domains:
+        match = re.match(sd, data['baseUrl'])
+        if match is not None:
+            data['baseUrl'] = re.sub('^http:', 'https:', data['baseUrl'])
+            break
+
     return Response(json.dumps(data), 200, content_type='application/json')
 
 
