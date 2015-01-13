@@ -60,7 +60,6 @@
                 var project_config = ${project_config};
 
                 jQuery(function ($) {
-
                     $.each(project_config, function (type, config) {
                         $.each(config, function (status, value) {
                             var selector = '.type-' + type + '-' + status;
@@ -69,17 +68,19 @@
                     });
 
                     $('button#enable,button#disable').click(function (e) {
-                        var action = $(this).attr('id') == 'enable' ? 'enable' : 'disable';
+                        var $elem = $(this);
+                        var action = $elem.attr('id') == 'enable' ? 'enable' : 'disable';
                         $.ajax({
                             url: "${enable_endpoint}",
                             data: $.param([
                                 {'name' : 'project_id', value: projectId},
                                 {'name' : 'client_id', value: clientId},
-                                {'name' : 'action', value: action},
+                                {'name' : 'action', value: action}
                             ]),
                             method: 'post',
                             success: function (response) {
-                                window.location.reload()
+                                $elem.hide();
+                                $elem.sibling('button').show();
                             }
                         })
                     });
