@@ -21,6 +21,8 @@ def my_view(request):
 
 @view_config(name='atlassian-connect.json')
 def descriptor_view(request):
+    print request
+    print request.scheme
     json_data = open(os.path.join(os.path.dirname(__file__), 'descriptor.json'))
     data = json.load(json_data)
     data['baseUrl'] = request.application_url
@@ -105,8 +107,8 @@ def configure_instance_view(request):
         'parent_types': parent_types,
         'host_script_base_url': host_script_base_url,
         'client_id': jwt_info['iss'],
-        'config_endpoint': request.resource_url(request.context, 'save-configuration'),
-        'enable_endpoint': request.resource_url(request.context, 'enable-project'),
+        'config_endpoint': request.resource_path(request.context, 'save-configuration'),
+        'enable_endpoint': request.resource_path(request.context, 'enable-project'),
         'project_config': "{}" if project_config is None else project_config.configuration,
         'enabled': False if project_config is None else project_config.enabled
     }

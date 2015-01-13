@@ -53,7 +53,7 @@
             </section>
         </div>
         <div metal:fill-slot="more-scripts" tal:omit-tag="True">
-            <script src="${request.static_url('coolstorybro:static/jquery-serializeForm.min.js')}"></script>
+            <script src="${request.static_path('coolstorybro:static/jquery-serializeForm.min.js')}"></script>
             <script type="text/javascript">
                 var clientId = "${client_id}";
                 var projectId = "${project.id}";

@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="atlassian add-on in pyramid">
     <meta name="author" content="ActiveLAMP, Bez Hermoso">
-    <link rel="shortcut icon" href="${request.static_url('coolstorybro:static/pyramid-16x16.png')}">
+    <link rel="shortcut icon" href="${request.static_path('coolstorybro:static/pyramid-16x16.png')}">
     <metal:block metal:define-slot="stylesheets">
         <link rel="stylesheet" href="//aui-cdn.atlassian.com/aui-adg/5.4.3/css/aui.css"/>
         <style>
