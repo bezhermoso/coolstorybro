@@ -141,7 +141,23 @@ def webhook_view(request):
     except:
         raise ValueError('Unknown JIRA instance.')
 
+
     data = request.json_body
+
+    config_mgr = request.jira_project_config_mgr
+
+    print pprint.pformat(data)
+    project_id = data['issue']['fields']['project']['id']
+    project_config = config_mgr.get_config_if_any(client_key=claims['iss'], project_id=project_id)
+
+    if project_config is None:
+        print 'No config for project'
+        return Response('No config for project.')
+
+    if not project_config.enabled:
+        print 'Disabled for project'
+        return Response('Disabled for proeject.')
+
     if data['webhookEvent'] == 'jira:issue_created':
         __on_issue_created(data, secret, request)
     elif data['webhookEvent'] in ['jira:issue_updated', 'remote_issue_link_aggregate_cleared_event']:
@@ -171,7 +187,8 @@ def __on_issue_updated(data, secret, request):
     if not data['issue']['fields'].has_key('parent'):
         return None
 
-    diff = None
+    diff = __extract_estimate(data['issue'])
+    print pprint.pformat(data['changelog'])
     #  Check if the summary is one of the fields updated.
     for change in data['changelog']['items']:
         if change['field'] == 'summary':
@@ -181,7 +198,9 @@ def __on_issue_updated(data, secret, request):
             if estimate_from is None:
                 estimate_from = 0
             diff = estimate_to - estimate_from
-            break
+            continue
+        if change['field'] == 'resolution':
+            continue
 
     if diff is not None:
         __update_issue_story_point(client, data['issue']['fields']['parent'], diff)
