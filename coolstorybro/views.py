@@ -143,10 +143,8 @@ def webhook_view(request):
 
 
     data = request.json_body
-
     config_mgr = request.jira_project_config_mgr
 
-    print pprint.pformat(data)
     project_id = data['issue']['fields']['project']['id']
     project_config = config_mgr.get_config_if_any(client_key=claims['iss'], project_id=project_id)
 
@@ -187,7 +185,8 @@ def __on_issue_updated(data, secret, request):
     if not data['issue']['fields'].has_key('parent'):
         return None
 
-    diff = __extract_estimate(data['issue'])
+    story_points = __extract_estimate(data['issue'])
+    diff = True
     print pprint.pformat(data['changelog'])
     #  Check if the summary is one of the fields updated.
     for change in data['changelog']['items']:
@@ -197,13 +196,23 @@ def __on_issue_updated(data, secret, request):
             estimate_to = __extract_estimate_from_string(change['toString'])
             if estimate_from is None:
                 estimate_from = 0
-            diff = estimate_to - estimate_from
-            continue
-        if change['field'] == 'resolution':
-            continue
+            story_points = estimate_to - estimate_from
+            print 'Detected diff:', str(story_points)
+            break
 
-    if diff is not None:
-        __update_issue_story_point(client, data['issue']['fields']['parent'], diff)
+    resolution_change = [change for change in data['changelog']['items'] if change['field'] == 'resolution']
+
+    if len(resolution_change) == 1:
+        resolution_change = resolution_change[0]
+        if resolution_change['from'] is None and resolution_change['to'] is not None:
+            print 'Resolving issue...'
+            story_points = 0 - __extract_estimate(data['issue'])
+        elif resolution_change['from'] is not None and resolution_change['to'] is None:
+            print 'Removing resolution...'
+            story_points = __extract_estimate(data['issue'])
+
+    if story_points is not None:
+        __update_issue_story_point(client, data['issue']['fields']['parent'], story_points)
 
 def __on_issue_created(data, secret, request):
     """
@@ -219,6 +228,9 @@ def __on_issue_created(data, secret, request):
 
     estimate = __extract_estimate(data['issue'])
     if estimate is None:
+        return None
+
+    if data['issue']['fields']['resolution'] is not None:
         return None
 
     if data['issue']['fields'].has_key('parent'):
@@ -238,6 +250,9 @@ def __on_issue_deleted(data, secret, request):
 
     estimate = __extract_estimate(data['issue'])
     if estimate is None:
+        return None
+
+    if data['issue']['fields']['resolution'] is not None:
         return None
 
     if data['issue']['fields'].has_key('parent'):
@@ -277,14 +292,15 @@ def __extract_estimate_from_string(s):
     if match is not None:
         return float(match.group(1))
 
-def __update_issue_story_point(client, parent_issue, story_point_diff):
+def __update_issue_story_point(client, parent_issue, story_points):
     """
     Updates a parent issue's story point with the story point diff.
     If the story point diff is positive, the value is added. Otherwise, it is removed.
 
     :param client: JiraClient
     :param parent_issue:
-    :param story_point_diff:
+    :param story_points:
+    :param diff:
     :return:
     """
     res = client.get(parent_issue['self'])
@@ -293,7 +309,7 @@ def __update_issue_story_point(client, parent_issue, story_point_diff):
         story_point = parent_data['fields'][STORY_POINT_FIELD_ID]
         if story_point is None:
             story_point = 0
-        new_story_point = float(story_point) + float(story_point_diff)
+        new_story_point = float(story_point) + float(story_points)
         put_res = client.put(parent_data['self'], data={
             'fields': {
                 STORY_POINT_FIELD_ID: new_story_point
